@@ -14,7 +14,7 @@ INSERT INTO users (
     username,
     password
 ) values (
-    username = $1, password = $2
+    $1, $2
 ) RETURNING id, username, password, softdelete
 `
 
@@ -36,15 +36,20 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id FROM users
+SELECT id, username, password, softdelete FROM users
 WHERE username = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, username string) (int64, error) {
+func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUser, username)
-	var id int64
-	err := row.Scan(&id)
-	return id, err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Softdelete,
+	)
+	return i, err
 }
 
 const updateCredentials = `-- name: UpdateCredentials :exec

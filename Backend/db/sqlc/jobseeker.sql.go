@@ -97,6 +97,18 @@ func (q *Queries) GetCandateProfile(ctx context.Context, id int64) (Jobseeker, e
 	return i, err
 }
 
+const getResume = `-- name: GetResume :one
+select resume from jobseeker
+where id = $1
+`
+
+func (q *Queries) GetResume(ctx context.Context, id int64) ([]byte, error) {
+	row := q.db.QueryRowContext(ctx, getResume, id)
+	var resume []byte
+	err := row.Scan(&resume)
+	return resume, err
+}
+
 const updateCandaidatePhoto = `-- name: UpdateCandaidatePhoto :exec
 UPDATE jobseeker
 SET photo = $2
@@ -131,29 +143,29 @@ func (q *Queries) UpdateCandaidateResume(ctx context.Context, arg UpdateCandaida
 
 const updateCandidateProfile = `-- name: UpdateCandidateProfile :exec
 UPDATE jobseeker
-SET email = $2, phone = $3, address = $4, city = $5, state = $6, pincode = $7
-WHERE id = $1
+SET email = COALESCE($1, email), phone = COALESCE($2, phone), address = COALESCE($3, address), city = COALESCE($4, city), state = COALESCE($5, state), pincode = COALESCE($6, pincode)
+WHERE id = $7
 `
 
 type UpdateCandidateProfileParams struct {
-	ID      int64  `json:"id"`
-	Email   string `json:"email"`
-	Phone   string `json:"phone"`
-	Address string `json:"address"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Pincode string `json:"pincode"`
+	Email   sql.NullString `json:"email"`
+	Phone   sql.NullString `json:"phone"`
+	Address sql.NullString `json:"address"`
+	City    sql.NullString `json:"city"`
+	State   sql.NullString `json:"state"`
+	Pincode sql.NullString `json:"pincode"`
+	ID      int64          `json:"id"`
 }
 
 func (q *Queries) UpdateCandidateProfile(ctx context.Context, arg UpdateCandidateProfileParams) error {
 	_, err := q.db.ExecContext(ctx, updateCandidateProfile,
-		arg.ID,
 		arg.Email,
 		arg.Phone,
 		arg.Address,
 		arg.City,
 		arg.State,
 		arg.Pincode,
+		arg.ID,
 	)
 	return err
 }

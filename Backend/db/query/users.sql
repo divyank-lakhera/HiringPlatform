@@ -3,11 +3,11 @@ INSERT INTO users (
     username,
     password
 ) values (
-    username = $1, password = $2
+    $1, $2
 ) RETURNING *;
 
 -- name: GetUser :one
-SELECT id FROM users
+SELECT * FROM users
 WHERE username = $1;
 
 -- name: UpdateCredentials :exec

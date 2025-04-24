@@ -1,7 +1,7 @@
 CREATE TABLE "recruiter" (
   "id" bigint PRIMARY KEY,
-  "name" varchar,
-  "company" varchar
+  "name" varchar NOT NULL,
+  "company" varchar NOT NULL
 );
 
 CREATE TABLE "job" (
@@ -28,8 +28,8 @@ CREATE TABLE "jobseeker" (
   "phone" varchar NOT NULL,
   "firstname" varchar NOT NULL,
   "lastname" varchar,
-  "photo" blob,
-  "resume" blob NOT NULL,
+  "photo" bytea,
+  "resume" bytea NOT NULL,
   "address" varchar NOT NULL,
   "city" varchar NOT NULL,
   "state" varchar NOT NULL,
@@ -65,13 +65,26 @@ CREATE TABLE "recommendedjob" (
   "jobid" bigint NOT NULL
 );
 
-ALTER TABLE "recruiter" ADD FOREIGN KEY ("id") REFERENCES "user" ("id") on DELETE CASCADE;
+CREATE TABLE "sessions" (
+  "id" uuid PRIMARY KEY,
+  "username" varchar NOT NULL,
+  "refresh_token" varchar NOT NULL,
+  "user_agent" varchar NOT NULL,
+  "client_ip" varchar NOT NULL,
+  "is_blocked" boolean NOT NULL DEFAULT false,
+  "expires_at" timestamptz NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT (now())
+);
 
-ALTER TABLE "jobseeker" ADD FOREIGN KEY ("id") REFERENCES "user" ("id") on DELETE CASCADE;
+ALTER TABLE "sessions" ADD FOREIGN KEY ("username") REFERENCES "users" ("username") on DELETE CASCADE;
 
-ALTER TABLE "experience" ADD FOREIGN KEY ("id") REFERENCES "user" ("id") on DELETE CASCADE;
+ALTER TABLE "recruiter" ADD FOREIGN KEY ("id") REFERENCES "users" ("id") on DELETE CASCADE;
 
-ALTER TABLE "education" ADD FOREIGN KEY ("id") REFERENCES "user" ("id") on DELETE CASCADE;
+ALTER TABLE "jobseeker" ADD FOREIGN KEY ("id") REFERENCES "users" ("id") on DELETE CASCADE;
+
+ALTER TABLE "experience" ADD FOREIGN KEY ("id") REFERENCES "users" ("id") on DELETE CASCADE;
+
+ALTER TABLE "education" ADD FOREIGN KEY ("id") REFERENCES "users" ("id") on DELETE CASCADE;
 
 ALTER TABLE "job" ADD FOREIGN KEY ("postby") REFERENCES "recruiter" ("id") on DELETE CASCADE;
 
@@ -79,7 +92,7 @@ ALTER TABLE "appliedjob" ADD FOREIGN KEY ("userid") REFERENCES "jobseeker" ("id"
 
 ALTER TABLE "appliedjob" ADD FOREIGN KEY ("jobid") REFERENCES "job" ("id") on DELETE CASCADE;
 
-ALTER TABLE "recommendedjob" ADD FOREIGN KEY ("userid") REFERENCES "user" ("id") on DELETE CASCADE;
+ALTER TABLE "recommendedjob" ADD FOREIGN KEY ("userid") REFERENCES "users" ("id") on DELETE CASCADE;
 
 ALTER TABLE "recommendedjob" ADD FOREIGN KEY ("jobid") REFERENCES "job" ("id") on DELETE CASCADE;
 
